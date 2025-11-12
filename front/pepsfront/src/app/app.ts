@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, signal, inject, OnInit } from '@angular/core'; // Ajout de inject et OnInit
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule, HttpClient } from '@angular/common/http'; // Ajout de HttpClientModule et HttpClient
 
 // --- Importations Angular Material ---
 // Importez les modules dont vous avez besoin pour les composants Material
@@ -79,6 +80,7 @@ const modulesData: Module[] = [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    HttpClientModule, // <-- AJOUT: Pour permettre les requêtes HTTP
     // --- Modules Material ---
     MatSidenavModule,
     MatListModule,
@@ -95,11 +97,14 @@ const modulesData: Module[] = [
     MatSelectModule,
     MatTooltipModule
   ],
-  templateUrl: './app.html',
-  styleUrls: ['./app.css'],
+  templateUrl: './app.html', // <-- CORRIGÉ (app.component.html -> app.html)
+  styleUrls: ['./app.css'],   // <-- CORRIGÉ (app.component.css -> app.css)
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class App {
+export class App implements OnInit { // <-- AJOUT: implements OnInit
+  // --- Injection de HttpClient ---
+  http = inject(HttpClient);
+
   // --- État Global ---
   isLoggedIn = signal(false);
   loginError = signal('');
@@ -109,10 +114,11 @@ export class App {
   isSidenavOpen = signal(true); // Menu ouvert par défaut sur desktop
 
   // --- État et Données du Dashboard ---
+  // Initialisation à 0 ou "chargement"
   stats = signal<StatCard>({
-    totalInteractions: 156,
+    totalInteractions: 0, // Initialisé à 0
     activeModules: modulesData.filter(m => m.status === 'Actif').length,
-    lastInteraction: '2025-01-15 14:23:15'
+    lastInteraction: 'Chargement...' // État de chargement
   });
   dailyChartData: DailyData[] = dailyData;
 
@@ -157,6 +163,49 @@ export class App {
 
   // --- Méthodes ---
 
+  // AJOUT: Appelé au démarrage du composant
+  ngOnInit() {
+    // Si on est déjà loggé (ex: futur rechargement de page), on charge les données
+    // Pour l'instant, la connexion n'est pas persistante,
+    // donc cela ne s'activera pas, mais c'est une bonne pratique.
+    if (this.isLoggedIn()) {
+      this.loadDashboardData();
+    }
+  }
+
+  // AJOUT: Nouvelle méthode pour charger les stats
+  loadDashboardData() {
+    // On met l'UI en mode chargement
+    this.stats.update(current => ({
+      ...current,
+      totalInteractions: 0,
+      lastInteraction: 'Chargement...'
+    }));
+
+    // Appel HTTP GET
+    this.http.get<StatCard>('http://localhost:8080/PEPs_back/dashboard').subscribe({
+      next: (data) => {
+        // Succès: on met à jour le signal avec les vraies données
+        // Note: L'API devrait retourner la structure StatCard complète
+        this.stats.set({
+          totalInteractions: data.totalInteractions,
+          // Si l'API ne renvoie pas activeModules, on le recalcule
+          activeModules: data.activeModules ?? this.modules().filter(m => m.status === 'Actif').length,
+          lastInteraction: data.lastInteraction
+        });
+      },
+      error: (err) => {
+        console.error('Erreur de chargement du dashboard:', err);
+        // En cas d'erreur (ex: backend non démarré), on affiche une erreur
+        this.stats.update(current => ({
+          ...current,
+          totalInteractions: 0,
+          lastInteraction: 'Erreur de connexion'
+        }));
+      }
+    });
+  }
+
   async checkPassword(event: Event) {
     event.preventDefault();
     this.loginError.set('');
@@ -178,6 +227,7 @@ export class App {
 
       if (hexHash === this.correctHash) {
         this.isLoggedIn.set(true);
+        this.loadDashboardData(); // <-- MODIFIÉ: Appel de la fonction de chargement
       } else {
         this.loginError.set('Mot de passe incorrect.');
       }
@@ -197,10 +247,8 @@ export class App {
   }
 
   refreshStats() {
-    this.stats.update(currentStats => ({
-      ...currentStats,
-      totalInteractions: currentStats.totalInteractions + 1
-    }));
+    // MODIFIÉ: Le bouton refresh appelle maintenant l'API
+    this.loadDashboardData();
   }
 
   setFilter(newFilter: string) {
