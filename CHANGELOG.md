@@ -1,174 +1,84 @@
-# PEPs Application - Consolidated Update Summary
+# PEPs Application - Monitoring & Management System
 
-## 1. Overview
-This document summarizes the comprehensive updates to the PEPs application. The release focuses on a robust **Sound Management System** (switching from file-system to database storage), **Module Configuration Validation**, and enhanced UI features including **Filtering** and **In-Place Editing**.
+**Version:** 1.1 (Nov 2025)
 
-**Version:** 1.1
-**Date:** 2025-11-18
+PEPs is a web-based monitoring system for intelligent modules, featuring real-time statistics, historical data analysis, and audio management.
 
----
-
-## 2. Architectural Change: Audio Storage
-
-**Previous Status:** Initial design considered storing files in a local `sons/` folder.
-**Current Implementation:** **Database Storage (BYTEA)**.
-* **Mechanism:** Audio files are converted to byte arrays and stored directly in the PostgreSQL database.
-* **Benefits:**
-    * Single source of truth.
-    * Simplified backup/restore (no separate file backup needed).
-    * Eliminates file system permission issues.
-    * Removes synchronization risks between DB records and disk files.
+## 🛠 Technology Stack
+* **Backend:** Java 8+, Spring Boot/Framework, Apache Tomcat 9+
+* **Frontend:** Angular 17+, Angular Material
+* **Database:** PostgreSQL 12+
 
 ---
 
-## 3. Database Changes
+## 🚀 Quick Start Guide
 
-### Sound Table
-The schema has been updated to support binary storage and file metadata.
+### 1. Database Setup
+```bash
+# 1. Start PostgreSQL
+pg_ctl start
 
-* **Added Columns:**
-    * `extension` (VARCHAR(10)): Stores file extensions (mp3, wav, etc.).
-    * `donnees_audio` (BYTEA): Stores the raw audio binary data.
-* **Test Data:**
-    * Updated scripts to include actual binary data for test sounds (Chant Mali, Perroquet, Eau Qui Coule).
+# 2. Create Tables
+psql -U postgres -d postgres -f "sql/requete creation tables.sql"
 
----
+# 3. Insert Test Data
+psql -U postgres -d postgres -f "sql/Creation données test.sql"
+```
 
-## 4. Backend Changes
+### 2. Backend Setup (Java)
+1.  Navigate to `back/PEPs_back`.
+2.  Build: `mvn clean install`.
+3.  Deploy `target/PEPs_back-0.1.war` to your Tomcat `webapps` folder.
+4.  **Context Path:** Ensure the app is deployed at `/PEPs_back`.
 
-### Sound Entity (`Sound.java`)
-* Added `extension` field.
-* Added `donneesAudio` field mapped to the `donnees_audio` database column.
-* Updated getters, setters, and constructors.
+### 3. Frontend Setup (Angular)
+```bash
+cd front/pepsfront
+npm install
+npm start
+# Access at: http://localhost:4200
+```
 
-### Sound Controller (`SoundController.java`)
-The controller was rewritten to remove file system dependencies.
-
-* **Upload (POST `/sounds`)**
-    * Accepts `multipart/form-data`.
-    * Validates format (mp3, wav, ogg, m4a).
-    * Converts file to `byte[]` and stores in `donnees_audio`.
-    * Auto-generates safe filenames.
-* **Download/Stream (GET `/sounds/{id}/file`)**
-    * Retrieves binary data from the database.
-    * Streams response with correct MIME types/headers for browser playback.
-* **Update Metadata (PUT `/sounds/{id}`) - *NEW***
-    * Updates `name` and `type`.
-    * **Note:** Does not modify the audio data, only metadata.
-* **Delete (DELETE `/sounds/{id}`)**
-    * Removes the database record (which now includes the audio data).
-    * Requires no file system cleanup.
-
-### Module Controller (`ModuleController.java`)
-Implemented strict validation logic:
-* **Name:** Required, non-empty.
-* **IP Address:** Required, valid IPv4 format (`xxx.xxx.xxx.xxx`).
-* **Volume:** Integer validation (0-100).
-* **Mode:** Must be "Manuel" or "Automatique".
-* **Response:** Returns granular error messages to the client.
-
-### Sound DTO (`SoundDTO.java`)
-* Added `extension` and `fileName` (name + extension) for frontend display.
+**Default Credentials:**
+* **Password:** `admin`
 
 ---
 
-## 5. Frontend Changes
+## ⚙️ Configuration (Crucial)
 
-### UI Layout & Styling
-* **Layout:** Switched from grid to a **Vertical List Layout** for sounds.
-* **Filtering:** Added filter buttons at the top ("Tous", "Vocal", "Ambiance", "Naturel", "Autre") with active highlighting.
-* **Forms:**
-    * Styling for the "Add Sound" upload form.
-    * Styling for the "Edit Sound" inline form.
+### Audio Storage Paths
+By default, audio files upload to the Tomcat bin directory. To fix this, **you must set an Environment Variable** pointing to your project source folder.
 
-### New Features & Interactions
-1.  **Sound Playback:** Integrated HTML5 audio player handling database streams.
-2.  **Filtering:** Dynamic `filteredSounds()` signal to show sounds by category.
-3.  **Edit Mode:**
-    * Inline editing for Sound Name and Type.
-    * Save/Cancel actions.
-4.  **Validation:**
-    * Real-time feedback on file types.
-    * Server-side error display for Module Config.
-    * Upload progress indicators.
+**Method A: Windows System Variable (Recommended)**
+1.  Search "Environment Variables" in Windows.
+2.  Create a new **System Variable**:
+    * **Name:** `PEPS_AUDIO_DIR`
+    * **Value:** `D:\Path\To\Your\Project\PEPs\back\PEPs_back\sons` (Adjust to your actual path)
+3.  Restart Tomcat/NetBeans.
 
-### Component State Updates
-* `filteredSounds`: Computed signal for the list view.
-* `editingSoundId`: Tracks active edit row.
-* `newSound`: Stores upload form data.
-* `isUploadingSoundSignal`: Spinner state.
-* `currentlyPlayingSound`: Tracks active audio.
+**Method B: Tomcat `catalina.bat`**
+Add this line to `bin/catalina.bat`:
+`set PEPS_AUDIO_DIR=D:\Path\To\Your\Project\PEPs\back\PEPs_back\sons`
 
 ---
 
-## 6. API Endpoints Summary
+## 📡 API Reference
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| **GET** | `/sounds` | List all sounds (with metadata). |
-| **GET** | `/sounds/{id}/file` | Stream audio binary data. |
-| **POST** | `/sounds` | Upload new sound (Multipart). |
-| **PUT** | `/sounds/{id}` | **Update sound metadata (Name/Type).** |
-| **DELETE** | `/sounds/{id}` | Delete sound and audio data. |
-| **PUT** | `/modules/{id}` | Update module config (Enhanced Validation). |
+| **GET** | `/dashboard` | Global statistics (interactions, active modules). |
+| **GET** | `/interactions` | Full history of module interactions. |
+| **GET** | `/modules` | List all modules and their statuses. |
+| **PUT** | `/modules/{id}` | Update config (Volume, IP, Mode). |
+| **GET** | `/sounds` | List available audio files. |
+| **POST** | `/sounds` | Upload new audio (Multipart: mp3, wav, ogg). |
+| **DELETE** | `/sounds/{id}` | Delete audio file and DB record. |
 
 ---
 
-## 7. Documentation & Files
+## ❓ Troubleshooting
 
-### File Structure Updates
-```text
-PEPs/
-├── back/PEPs_back/src/main/java/peps/peps_back/
-│   ├── controllers/
-│   │   ├── SoundController.java (DB Storage + Edit)
-│   │   ├── ModuleController.java (Validation)
-│   │   └── SoundDTO.java
-│   └── items/
-│       └── Sound.java (Added donneesAudio)
-├── front/pepsfront/src/app/
-│   ├── app.ts (Filter, Edit, Upload logic)
-│   ├── app.html (Filter buttons, Edit forms)
-│   └── app.css
-├── sql/
-│   ├── requete creation tables.sql (Added BYTEA/Extension)
-│   └── Creation données test.sql
-└── Docs/ (Updated EN & FR guides)
-
-## 8. Deployment & Migration Steps
-
-1.  **Database Migration (Critical):**
-    * Ensure the `sound` table has the `donnees_audio` (BYTEA) and `extension` columns.
-    * *Note:* Existing file-based sounds must be migrated to the database or re-uploaded.
-    ```sql
-    ALTER TABLE sound ADD COLUMN IF NOT EXISTS extension VARCHAR(10);
-    ALTER TABLE sound ADD COLUMN IF NOT EXISTS donnees_audio BYTEA;
-    ```
-
-2.  **Backend Build:**
-    * Clean and build to include new entities and controllers.
-    * `mvn clean install`
-
-3.  **Frontend Build:**
-    * `npm start` or build for production.
-
-4.  **Verification:**
-    * Check `SELECT idsound, octet_length(donnees_audio) FROM sound;` to verify binary data storage.
-
----
-
-## 9. Testing Checklist
-
-### Backend
-- [ ] Upload mp3, wav, ogg, m4a (verify storage in DB).
-- [ ] Reject invalid file formats.
-- [ ] Update Sound Name/Type (PUT) - verify audio remains intact.
-- [ ] Delete Sound - verify removal from DB.
-- [ ] Module Config - Validation of IP, Volume, Mode.
-
-### Frontend
-- [ ] **Filter:** Click categories, verify list updates.
-- [ ] **Edit:** Enter edit mode, change name, save.
-- [ ] **Play:** Audio plays correctly (streamed from DB).
-- [ ] **Upload:** Form validation and progress bar.
-- [ ] **Validation:** Try entering invalid IP in Module config, check error message.
+* **CORS Errors:** Ensure Frontend runs on port `4200`.
+* **Upload Failed:** Check if the `sons/` directory exists and has write permissions.
+* **404 Errors:** Verify Tomcat deployed the WAR to `/PEPs_back`.
+* **DB Connection:** Check `persistence.xml` if your Postgres password is not default.

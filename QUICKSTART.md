@@ -1,136 +1,84 @@
-# Application PEPs - Guide de Démarrage Rapide
+# PEPs Application - Monitoring & Management System
 
-## Qu'est-ce que PEPs?
+**Version:** 1.1 (Nov 2025)
 
-PEPs est un système de surveillance et de gestion web conçu pour suivre les interactions avec des modules intelligents. L'application fournit des statistiques en temps réel, une analyse de données historiques et des capacités de gestion de configuration.
+PEPs is a web-based monitoring system for intelligent modules, featuring real-time statistics, historical data analysis, and audio management.
 
-## Installation Rapide (5 Minutes)
-
-### 1. Base de Données (2 minutes)
-```bash
-# Démarrer PostgreSQL
-pg_ctl start
-
-# Créer la structure de la base de données
-psql -U postgres -d postgres -f "sql/requete creation tables.sql"
-
-# Charger les données de test
-psql -U postgres -d postgres -f "sql/Creation données test.sql"
-```
-
-### 2. Backend (2 minutes)
-```bash
-# Compiler l'application
-cd back\PEPs_back
-mvn clean install
-
-# Déployer sur le serveur d'applications
-# Copier target/PEPs_back-0.1.war dans le dossier webapps de votre serveur
-
-# Vérifier le déploiement
-curl http://localhost:8080/PEPs_back/dashboard
-```
-
-### 3. Frontend (1 minute)
-```bash
-# Démarrer le serveur de développement
-cd front\pepsfront
-npm install
-npm start
-
-# Accéder à l'application
-# Ouvrir http://localhost:4200
-```
-
-## Identifiants par Défaut
-
-- **Nom d'utilisateur:** (aucun requis)
-- **Mot de passe:** `admin`
-
-## Fonctionnalités Principales
-
-### Tableau de Bord
-- Statistiques d'interactions en temps réel
-- Nombre de modules actifs
-- Horodatage de la dernière interaction
-- Graphique d'activité horaire
-
-### Interactions
-- Historique complet des interactions
-- Filtrage par date
-- Capacité d'export CSV
-
-### Modules
-- Surveillance de l'état des modules
-- Gestion de configuration
-- Mises à jour en temps réel
-
-### Bibliothèque de Sons
-- Parcourir les sons disponibles
-- Écouter les sons
-- Ajouter de nouveaux sons avec upload de fichiers
-- Supprimer des sons avec confirmation
-
-## Ports par Défaut
-
-- API Backend: `http://localhost:8080`
-- Interface Frontend: `http://localhost:4200`
-- Base de données: `localhost:5432`
-
-## Exigences Minimales
-
-- PostgreSQL 12+
-- Java 8+
-- Node.js 18+
-- 2GB RAM
-- Navigateur web moderne
-
-## Problèmes Courants
-
-**Impossible de se connecter au backend?**
-- Assurez-vous que Tomcat/GlassFish est en cours d'exécution
-- Vérifiez le déploiement au contexte `/PEPs_back`
-
-**Aucune donnée affichée?**
-- Exécutez le script SQL de données de test
-- Vérifiez que les endpoints backend retournent des données
-
-**Erreurs CORS?**
-- Le frontend doit s'exécuter sur le port 4200
-- Ou mettez à jour les paramètres CORS dans les contrôleurs backend
-
-**Problèmes d'upload de son?**
-- Formats supportés: mp3, wav, ogg, m4a
-- Vérifiez que le dossier `sons` existe et est accessible
-- Vérifiez les permissions d'écriture
-
-## Structure du Projet
-
-```
-PEPs/
-├── back/PEPs_back/         # Backend Java Spring
-├── front/pepsfront/        # Frontend Angular  
-├── sons/                   # Fichiers audio
-├── sql/                    # Scripts de base de données
-├── QUICKSTART_FR.md        # Ce fichier
-└── SETUP_GUIDE_FR.md       # Documentation détaillée
-```
-
-## Prochaines Étapes
-
-Après une installation réussie:
-1. Connectez-vous avec les identifiants par défaut
-2. Explorez le tableau de bord
-3. Consultez les données d'exemple dans la page Interactions
-4. Configurez un module de test
-5. Ajoutez un nouveau son dans la bibliothèque
-6. Consultez SETUP_GUIDE_FR.md pour la configuration avancée
-
-## Support
-
-Pour un dépannage détaillé et des options de configuration, consultez SETUP_GUIDE_FR.md dans le répertoire racine du projet.
+## 🛠 Technology Stack
+* **Backend:** Java 8+, Spring Boot/Framework, Apache Tomcat 9+
+* **Frontend:** Angular 17+, Angular Material
+* **Database:** PostgreSQL 12+
 
 ---
 
-**Version:** 1.0  
-**Dernière mise à jour:** 2025-11-18
+## 🚀 Quick Start Guide
+
+### 1. Database Setup
+```bash
+# 1. Start PostgreSQL
+pg_ctl start
+
+# 2. Create Tables
+psql -U postgres -d postgres -f "sql/requete creation tables.sql"
+
+# 3. Insert Test Data
+psql -U postgres -d postgres -f "sql/Creation données test.sql"
+```
+
+### 2. Backend Setup (Java)
+1.  Navigate to `back/PEPs_back`.
+2.  Build: `mvn clean install`.
+3.  Deploy `target/PEPs_back-0.1.war` to your Tomcat `webapps` folder.
+4.  **Context Path:** Ensure the app is deployed at `/PEPs_back`.
+
+### 3. Frontend Setup (Angular)
+```bash
+cd front/pepsfront
+npm install
+npm start
+# Access at: http://localhost:4200
+```
+
+**Default Credentials:**
+* **Password:** `admin`
+
+---
+
+## ⚙️ Configuration (Crucial)
+
+### Audio Storage Paths
+By default, audio files upload to the Tomcat bin directory. To fix this, **you must set an Environment Variable** pointing to your project source folder.
+
+**Method A: Windows System Variable (Recommended)**
+1.  Search "Environment Variables" in Windows.
+2.  Create a new **System Variable**:
+    * **Name:** `PEPS_AUDIO_DIR`
+    * **Value:** `D:\Path\To\Your\Project\PEPs\back\PEPs_back\sons` (Adjust to your actual path)
+3.  Restart Tomcat/NetBeans.
+
+**Method B: Tomcat `catalina.bat`**
+Add this line to `bin/catalina.bat`:
+`set PEPS_AUDIO_DIR=D:\Path\To\Your\Project\PEPs\back\PEPs_back\sons`
+
+---
+
+## 📡 API Reference
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **GET** | `/dashboard` | Global statistics (interactions, active modules). |
+| **GET** | `/interactions` | Full history of module interactions. |
+| **GET** | `/modules` | List all modules and their statuses. |
+| **PUT** | `/modules/{id}` | Update config (Volume, IP, Mode). |
+| **GET** | `/sounds` | List available audio files. |
+| **POST** | `/sounds` | Upload new audio (Multipart: mp3, wav, ogg). |
+| **DELETE** | `/sounds/{id}` | Delete audio file and DB record. |
+
+---
+
+## ❓ Troubleshooting
+
+* **CORS Errors:** Ensure Frontend runs on port `4200`.
+* **Upload Failed:** Check if the `sons/` directory exists and has write permissions.
+* **404 Errors:** Verify Tomcat deployed the WAR to `/PEPs_back`.
+* **DB Connection:** Check `persistence.xml` if your Postgres password is not default.
