@@ -80,7 +80,7 @@ const modulesData: Module[] = [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule, // <-- AJOUT: Pour permettre les requêtes HTTP
+    HttpClientModule, 
     // --- Modules Material ---
     MatSidenavModule,
     MatListModule,
@@ -97,11 +97,11 @@ const modulesData: Module[] = [
     MatSelectModule,
     MatTooltipModule
   ],
-  templateUrl: './app.html', // <-- CORRIGÉ (app.component.html -> app.html)
-  styleUrls: ['./app.css'],   // <-- CORRIGÉ (app.component.css -> app.css)
+  templateUrl: './app.html',
+  styleUrls: ['./app.css'],  
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class App implements OnInit { // <-- AJOUT: implements OnInit
+export class App implements OnInit { 
   // --- Injection de HttpClient ---
   http = inject(HttpClient);
 
@@ -163,7 +163,6 @@ export class App implements OnInit { // <-- AJOUT: implements OnInit
 
   // --- Méthodes ---
 
-  // AJOUT: Appelé au démarrage du composant
   ngOnInit() {
     // Si on est déjà loggé (ex: futur rechargement de page), on charge les données
     // Pour l'instant, la connexion n'est pas persistante,
@@ -173,7 +172,7 @@ export class App implements OnInit { // <-- AJOUT: implements OnInit
     }
   }
 
-  // AJOUT: Nouvelle méthode pour charger les stats
+
   loadDashboardData() {
     // On met l'UI en mode chargement
     this.stats.update(current => ({
@@ -227,7 +226,7 @@ export class App implements OnInit { // <-- AJOUT: implements OnInit
 
       if (hexHash === this.correctHash) {
         this.isLoggedIn.set(true);
-        this.loadDashboardData(); // <-- MODIFIÉ: Appel de la fonction de chargement
+        this.loadDashboardData();
       } else {
         this.loginError.set('Mot de passe incorrect.');
       }
@@ -247,7 +246,6 @@ export class App implements OnInit { // <-- AJOUT: implements OnInit
   }
 
   refreshStats() {
-    // MODIFIÉ: Le bouton refresh appelle maintenant l'API
     this.loadDashboardData();
   }
 
