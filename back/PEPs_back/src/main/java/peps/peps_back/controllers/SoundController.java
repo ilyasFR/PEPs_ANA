@@ -1,6 +1,8 @@
 package peps.peps_back.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,6 +13,10 @@ import peps.peps_back.items.Sound;
 import peps.peps_back.repositories.SoundRepository;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +29,9 @@ public class SoundController {
 
     @Autowired
     private SoundRepository soundRepository;
+    
+    // Files will be saved relative to Tomcat working directory (usually tomcat/bin/sons)
+    private static final String UPLOAD_DIR = "sons";
 
     @GetMapping
     public ResponseEntity<List<SoundDTO>> getAllSounds() {
@@ -41,24 +50,37 @@ public class SoundController {
     }
 
     @GetMapping("/{id}/file")
-    public ResponseEntity<byte[]> getSoundFile(@PathVariable Integer id) {
+    public ResponseEntity<Resource> getSoundFile(@PathVariable Integer id) {
         Sound sound = soundRepository.findById(id).orElse(null);
         if (sound == null) {
             return ResponseEntity.notFound().build();
         }
 
-        if (sound.getDonneesAudio() == null || sound.getDonneesAudio().length == 0) {
+        if (sound.getChemin() == null || sound.getChemin().isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        String contentType = getContentType(sound.getExtension());
-        String fileName = sound.getNom().replaceAll("[^a-zA-Z0-9\\s]", "_").replaceAll("\\s+", "_") 
-                        + "." + sound.getExtension();
+        try {
+            Path filePath = Paths.get(sound.getChemin());
+            Resource resource = new UrlResource(filePath.toUri());
+            
+            if (!resource.exists() || !resource.isReadable()) {
+                return ResponseEntity.notFound().build();
+            }
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(contentType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
-                .body(sound.getDonneesAudio());
+            String contentType = getContentType(sound.getExtension());
+            String fileName = sound.getNom().replaceAll("[^a-zA-Z0-9\\s]", "_").replaceAll("\\s+", "_") 
+                            + "." + sound.getExtension();
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + fileName + "\"")
+                    .body(resource);
+        } catch (Exception e) {
+            System.err.println("Error loading file: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     private String getContentType(String extension) {
@@ -116,17 +138,27 @@ public class SoundController {
                 return ResponseEntity.badRequest().body(error);
             }
 
-            // Store audio data in database
-            byte[] audioData = file.getBytes();
-
+            // Create directory structure: sons/type/
+            Path typeDir = Paths.get(UPLOAD_DIR, type);
+            Files.createDirectories(typeDir);
+            
+            // Generate unique filename
+            String sanitizedName = name.replaceAll("[^a-zA-Z0-9\\s]", "_").replaceAll("\\s+", "_");
+            String fileName = sanitizedName + "_" + System.currentTimeMillis() + "." + extension;
+            Path filePath = typeDir.resolve(fileName);
+            
+            // Save file to disk
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            
+            // Save metadata to database with file path
             Sound sound = new Sound();
             sound.setNom(name);
             sound.setTypeSon(type);
             sound.setExtension(extension);
-            sound.setDonneesAudio(audioData);
+            sound.setChemin(filePath.toString());
             sound = soundRepository.save(sound);
             
-            System.out.println("Sound saved to database with ID: " + sound.getIdsound() + ", size: " + audioData.length + " bytes");
+            System.out.println("Sound saved to file: " + filePath.toString() + ", ID: " + sound.getIdsound());
 
             SoundDTO dto = new SoundDTO(sound.getIdsound(), sound.getNom(), sound.getTypeSon(), sound.getExtension());
             return ResponseEntity.ok(dto);
@@ -135,7 +167,7 @@ public class SoundController {
             System.err.println("IOException during upload: " + e.getMessage());
             e.printStackTrace();
             Map<String, String> error = new HashMap<>();
-            error.put("error", "Erreur lors de la lecture du fichier: " + e.getMessage());
+            error.put("error", "Erreur lors de la sauvegarde du fichier: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         } catch (Exception e) {
             System.err.println("Exception during upload: " + e.getMessage());
@@ -167,7 +199,7 @@ public class SoundController {
             return ResponseEntity.badRequest().body(error);
         }
 
-        // Update only name and type, keep audio data unchanged
+        // Update only name and type, keep file path unchanged
         sound.setNom(soundDTO.getName());
         sound.setTypeSon(soundDTO.getType());
         sound = soundRepository.save(sound);
@@ -183,6 +215,18 @@ public class SoundController {
             Map<String, String> error = new HashMap<>();
             error.put("error", "Son introuvable");
             return ResponseEntity.notFound().build();
+        }
+
+        // Delete file from disk
+        if (sound.getChemin() != null && !sound.getChemin().isEmpty()) {
+            try {
+                Path filePath = Paths.get(sound.getChemin());
+                Files.deleteIfExists(filePath);
+                System.out.println("Deleted file: " + filePath.toString());
+            } catch (IOException e) {
+                System.err.println("Error deleting file: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
         soundRepository.delete(sound);

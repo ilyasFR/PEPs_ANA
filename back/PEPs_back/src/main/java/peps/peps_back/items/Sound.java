@@ -53,8 +53,9 @@ public class Sound implements Serializable {
     @Size(min = 1, max = 10)
     @Column(name = "extension")
     private String extension;
-    @Column(name = "donnees_audio")
-    private byte[] donneesAudio;
+    @Size(max = 500)
+    @Column(name = "chemin")
+    private String chemin;
     @OneToMany(mappedBy = "idsound")
     private Collection<Interaction> interactionCollection;
 
@@ -104,12 +105,12 @@ public class Sound implements Serializable {
         this.extension = extension;
     }
 
-    public byte[] getDonneesAudio() {
-        return donneesAudio;
+    public String getChemin() {
+        return chemin;
     }
 
-    public void setDonneesAudio(byte[] donneesAudio) {
-        this.donneesAudio = donneesAudio;
+    public void setChemin(String chemin) {
+        this.chemin = chemin;
     }
 
     public Collection<Interaction> getInteractionCollection() {
