@@ -12,5 +12,6 @@ peps\peps_back\repositories\SoundRepositoryCustomImpl.class
 peps\peps_back\repositories\InteractionRepositoryCustom.class
 peps\peps_back\JakartaRestConfiguration.class
 peps\peps_back\resources\JakartaEE8Resource.class
+peps\peps_back\controllers\DashboardStats.class
 peps\peps_back\controllers\IndexController.class
 peps\peps_back\repositories\SoundRepositoryCustom.class
