@@ -73,6 +73,9 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
+            "main": "src/test.ts",
+            "karmaConfig": "karma.conf.js",
+            "browsers": "Chrome",
             "tsConfig": "tsconfig.spec.json",
             "assets": [
               {
