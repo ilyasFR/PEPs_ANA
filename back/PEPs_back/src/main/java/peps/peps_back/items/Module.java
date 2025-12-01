@@ -1,6 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+/**
+ * @author BOUNOUA Ilyas and VAZEILLE Clément
+ * @description This file defines the Module entity, which represents a physical module in the system.
  */
 package peps.peps_back.items;
 
@@ -13,7 +13,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -22,22 +21,17 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
-/**
- *
- * @author Clément
- */
 @Entity
 @Table(name = "module")
-@NamedQueries({
-    @NamedQuery(name = "Module.findAll", query = "SELECT m FROM Module m"),
-    @NamedQuery(name = "Module.findByIdmodule", query = "SELECT m FROM Module m WHERE m.idmodule = :idmodule"),
-    @NamedQuery(name = "Module.findByNom", query = "SELECT m FROM Module m WHERE m.nom = :nom"),
-    @NamedQuery(name = "Module.findByIpAdress", query = "SELECT m FROM Module m WHERE m.ipAdress = :ipAdress"),
-    @NamedQuery(name = "Module.findByStatus", query = "SELECT m FROM Module m WHERE m.status = :status"),
-    @NamedQuery(name = "Module.findByVolume", query = "SELECT m FROM Module m WHERE m.volume = :volume"),
-    @NamedQuery(name = "Module.findByCurrentMode", query = "SELECT m FROM Module m WHERE m.currentMode = :currentMode"),
-    @NamedQuery(name = "Module.findByActif", query = "SELECT m FROM Module m WHERE m.actif = :actif"),
-    @NamedQuery(name = "Module.findByLastSeen", query = "SELECT m FROM Module m WHERE m.lastSeen = :lastSeen")})
+@NamedQuery(name = "Module.findAll", query = "SELECT m FROM Module m")
+@NamedQuery(name = "Module.findByIdmodule", query = "SELECT m FROM Module m WHERE m.idmodule = :idmodule")
+@NamedQuery(name = "Module.findByNom", query = "SELECT m FROM Module m WHERE m.nom = :nom")
+@NamedQuery(name = "Module.findByIpAdress", query = "SELECT m FROM Module m WHERE m.ipAdress = :ipAdress")
+@NamedQuery(name = "Module.findByStatus", query = "SELECT m FROM Module m WHERE m.status = :status")
+@NamedQuery(name = "Module.findByVolume", query = "SELECT m FROM Module m WHERE m.volume = :volume")
+@NamedQuery(name = "Module.findByCurrentMode", query = "SELECT m FROM Module m WHERE m.currentMode = :currentMode")
+@NamedQuery(name = "Module.findByActif", query = "SELECT m FROM Module m WHERE m.actif = :actif")
+@NamedQuery(name = "Module.findByLastSeen", query = "SELECT m FROM Module m WHERE m.lastSeen = :lastSeen")
 public class Module implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -89,15 +83,73 @@ public class Module implements Serializable {
         this.idmodule = idmodule;
     }
 
-    public Module(Integer idmodule, String nom, String ipAdress, String status, int volume, String currentMode, boolean actif, Date lastSeen) {
-        this.idmodule = idmodule;
-        this.nom = nom;
-        this.ipAdress = ipAdress;
-        this.status = status;
-        this.volume = volume;
-        this.currentMode = currentMode;
-        this.actif = actif;
-        this.lastSeen = lastSeen;
+    /**
+     * Constructs a new Module with the given configuration.
+     * @param config The module configuration.
+     */
+    public Module(ModuleConfig config) {
+        this.idmodule = config.idmodule;
+        this.nom = config.nom;
+        this.ipAdress = config.ipAdress;
+        this.status = config.status;
+        this.volume = config.volume;
+        this.currentMode = config.currentMode;
+        this.actif = config.actif;
+        this.lastSeen = config.lastSeen;
+    }
+
+    /**
+     * This class defines the configuration for a module.
+     */
+    public static class ModuleConfig {
+        private Integer idmodule;
+        private String nom;
+        private String ipAdress;
+        private String status;
+        private int volume;
+        private String currentMode;
+        private boolean actif;
+        private Date lastSeen;
+
+        public ModuleConfig setIdmodule(Integer idmodule) {
+            this.idmodule = idmodule;
+            return this;
+        }
+
+        public ModuleConfig setNom(String nom) {
+            this.nom = nom;
+            return this;
+        }
+
+        public ModuleConfig setIpAdress(String ipAdress) {
+            this.ipAdress = ipAdress;
+            return this;
+        }
+
+        public ModuleConfig setStatus(String status) {
+            this.status = status;
+            return this;
+        }
+
+        public ModuleConfig setVolume(int volume) {
+            this.volume = volume;
+            return this;
+        }
+
+        public ModuleConfig setCurrentMode(String currentMode) {
+            this.currentMode = currentMode;
+            return this;
+        }
+
+        public ModuleConfig setActif(boolean actif) {
+            this.actif = actif;
+            return this;
+        }
+
+        public ModuleConfig setLastSeen(Date lastSeen) {
+            this.lastSeen = lastSeen;
+            return this;
+        }
     }
 
     public Integer getIdmodule() {
@@ -181,15 +233,12 @@ public class Module implements Serializable {
 
     @Override
     public boolean equals(Object object) {
-        // TODO: Warning - this method won't work in the case the id fields are not set
         if (!(object instanceof Module)) {
             return false;
         }
         Module other = (Module) object;
-        if ((this.idmodule == null && other.idmodule != null) || (this.idmodule != null && !this.idmodule.equals(other.idmodule))) {
-            return false;
-        }
-        return true;
+        // This method was changed to handle null idmodule values.
+        return (this.idmodule != null && this.idmodule.equals(other.idmodule)) || (this.idmodule == null && other.idmodule == null);
     }
 
     @Override

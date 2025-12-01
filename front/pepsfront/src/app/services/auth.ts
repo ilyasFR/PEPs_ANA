@@ -1,10 +1,14 @@
+/**
+ * @author BOUNOUA Ilyas and VAZEILLE Clément
+ * @description This file contains the AuthService, which is responsible for handling user authentication logic, including login and logout.
+ */
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private isLoggedIn = signal(false);
+  private readonly isLoggedIn = signal(false);
   private readonly correctHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
   isAuthenticated = this.isLoggedIn.asReadonly();

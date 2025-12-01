@@ -1,3 +1,7 @@
+/**
+ * @author BOUNOUA Ilyas and VAZEILLE Clément
+ * @description This file contains the ApiService, which handles all HTTP requests to the backend.
+ */
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +12,7 @@ import { StatCard, Interaction, Module, DailyData, Sound } from '../models/inter
   providedIn: 'root',
 })
 export class ApiService {
-  private http = inject(HttpClient);
+  private readonly http = inject(HttpClient);
   private readonly BASE_URL = 'http://localhost:8080/PEPs_back';
 
   // Dashboard

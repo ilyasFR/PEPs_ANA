@@ -1,3 +1,7 @@
+/**
+ * @author BOUNOUA Ilyas and VAZEILLE Clément
+ * @description This file contains the logic for the dashboard component, which displays statistics and daily data.
+ */
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -13,7 +17,7 @@ import { StatCard, DailyData } from '../../models/interfaces';
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  private api = inject(ApiService);
+  private readonly api = inject(ApiService);
 
   stats = signal<StatCard>({
     totalInteractions: 0,

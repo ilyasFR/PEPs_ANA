@@ -1,3 +1,7 @@
+/**
+ * @author BOUNOUA Ilyas and VAZEILLE Clément
+ * @description This file contains unit tests for the AuthService.
+ */
 import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth';
 import { provideHttpClient } from '@angular/common/http';
@@ -29,7 +33,7 @@ describe('AuthService', () => {
     const correctHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
     
     // Create a buffer from the hash
-    const buffer = new Uint8Array(correctHash.match(/.{1,2}/g)!.map(byte => parseInt(byte, 16))).buffer;
+    const buffer = new Uint8Array(correctHash.match(/.{1,2}/g)!.map(byte => Number.parseInt(byte, 16))).buffer;
 
     spyOn(crypto.subtle, 'digest').and.resolveTo(buffer);
 
