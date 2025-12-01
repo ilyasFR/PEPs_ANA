@@ -15,6 +15,7 @@ peps\peps_back\controllers\DashboardStats.class
 peps\peps_back\repositories\ModuleRepositoryCustomImpl.class
 peps\peps_back\items\Module.class
 peps\peps_back\repositories\InteractionRepositoryCustomImpl.class
+peps\peps_back\items\Module$ModuleConfig.class
 peps\peps_back\repositories\ModuleRepositoryCustom.class
 peps\peps_back\repositories\SoundRepositoryCustomImpl.class
 peps\peps_back\controllers\SoundDTO.class
