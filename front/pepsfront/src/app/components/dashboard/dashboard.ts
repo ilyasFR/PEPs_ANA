@@ -17,7 +17,7 @@ import { StatCard, DailyData } from '../../models/interfaces';
   styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-  private api = inject(ApiService);
+  private readonly api = inject(ApiService);
 
   stats = signal<StatCard>({
     totalInteractions: 0,

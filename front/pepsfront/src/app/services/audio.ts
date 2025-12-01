@@ -9,7 +9,7 @@ import { Injectable, signal } from '@angular/core';
 })
 export class AudioService {
   private currentAudio: HTMLAudioElement | null = null;
-  private currentlyPlaying = signal<number | null>(null);
+  private readonly currentlyPlaying = signal<number | null>(null);
 
   currentlyPlayingId = this.currentlyPlaying.asReadonly();
 

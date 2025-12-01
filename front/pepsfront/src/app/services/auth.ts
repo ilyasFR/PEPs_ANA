@@ -8,7 +8,7 @@ import { Injectable, signal } from '@angular/core';
   providedIn: 'root',
 })
 export class AuthService {
-  private isLoggedIn = signal(false);
+  private readonly isLoggedIn = signal(false);
   private readonly correctHash = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
   isAuthenticated = this.isLoggedIn.asReadonly();
