@@ -4,7 +4,6 @@
  */
 package peps.peps_back.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -31,11 +30,14 @@ import java.util.stream.Collectors;
 @CrossOrigin(origins = "http://localhost:4200")
 public class SoundController {
 
-    @Autowired
-    private SoundRepository soundRepository;
+    private final SoundRepository soundRepository;
     
     // Files will be saved relative to Tomcat working directory (usually tomcat/bin/sons)
     private static final String UPLOAD_DIR = "sons";
+
+    public SoundController(SoundRepository soundRepository) {
+        this.soundRepository = soundRepository;
+    }
 
     @GetMapping
     public ResponseEntity<List<SoundDTO>> getAllSounds() {
