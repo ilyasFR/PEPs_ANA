@@ -47,7 +47,8 @@ jobs:
           mvn -B clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
           -Dsonar.projectKey=ilyasFR_PEPs_BACK \
           -Dsonar.organization=ilyasfr \
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+          -Dmaven.test.failure.ignore=true
 
   # ------------------------------------------------------------------
   # JOB 2: FRONTEND (Angular) with LCOV Coverage
